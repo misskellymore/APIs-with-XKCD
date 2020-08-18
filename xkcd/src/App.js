@@ -10,6 +10,7 @@ import axios from 'axios'
 import './App.css';
 
 function App() {
+  const [loading, setLoading] = useState(true);
   const [comic, setComic] = useState(null);
   // we don't want to make a network req on every render. That would be bad.
   // if done w/a public api. They will banned you for some period of
@@ -65,25 +66,47 @@ function App() {
     // so we put that in front of the actual api that we want to req
     // and it will handle resending that req and giving back the info that we want back
     // from it
-
+    setLoading(true);
     axios.get(`https://cors-anywhere.herokuapp.com/http://xkcd.com/info.0.json`)
-    .then(res => setComic(res.data))
-    .catch(err => console.log(err))
+    .then(res => {
+      setComic(res.data)
+      setLoading(false);
+    })
+    .catch(err => {
+      console.log(err)
+      setLoading(false);
+    })
   }, [])
 
   const fetchComic = (number) => {
+    // setComic to null so we can get the Loading function
+    // setComic(null)
+    // we can change the above now w/setLoading
+    setLoading(true);
     axios.get(`https://cors-anywhere.herokuapp.com/http://xkcd.com/${number}/info.0.json`)
     .then(res => setComic(res.data))
     .catch(err => console.log(err))
+    // after our then OR after our catchwe call 'finally' to wrap it up
+    // this does the sam thing as our setLoading logic inside useEffect
+    .finally(() => setLoading(false))
   }
 
   console.log(comic)
 
   // if we don't have a comic yet, then we're gonna return a div that says loading
-  if(!comic){
+  if(loading){
     return (
       <div>
         Loading...
+      </div>
+    )
+  }
+
+  // Hopefully a user will never see this. It is just a percaution
+  if(!comic){
+    return(
+      <div>
+        Error
       </div>
     )
   }
