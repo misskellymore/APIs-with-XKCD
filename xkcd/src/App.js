@@ -11,7 +11,40 @@ import './App.css';
 
 function App() {
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [comic, setComic] = useState(null);
+  const fetchComic = (number) => {
+    // setComic to null so we can get the Loading function
+    // setComic(null)
+    // we can change the above now w/setLoading
+    setLoading(true);
+    axios.get(`https://cors-anywhere.herokuapp.com/http://xkcd.com/${number}/info.0.json`)
+    .then(res => setComic(res.data))
+    .catch(err => {
+      console.log(err);
+      setError(err);
+    })
+    // after our then OR after our catchwe call 'finally' to wrap it up
+    // this does the sam thing as our setLoading logic inside useEffect
+    .finally(() => setLoading(false))
+  }
+
+  // created a new useEffect
+  // notes below this function came first
+  // fetchLatestComic is our call back function
+  const fetchLatestComic = () => {
+    setLoading(true);
+    axios.get(`https://cors-anywhere.herokuapp.com/http://xkcd.com/info.0.json`)
+    .then(res => {
+      setComic(res.data)
+      setLoading(false);
+    })
+    .catch(err => {
+      console.log(err);
+      setError(err)
+      setLoading(false);
+    });
+  }
   // we don't want to make a network req on every render. That would be bad.
   // if done w/a public api. They will banned you for some period of
   // time, potentially permenitly, if you make too many req in too
@@ -66,30 +99,19 @@ function App() {
     // so we put that in front of the actual api that we want to req
     // and it will handle resending that req and giving back the info that we want back
     // from it
-    setLoading(true);
-    axios.get(`https://cors-anywhere.herokuapp.com/http://xkcd.com/info.0.json`)
-    .then(res => {
-      setComic(res.data)
-      setLoading(false);
-    })
-    .catch(err => {
-      console.log(err)
-      setLoading(false);
-    })
+    // setLoading(true);
+    // axios.get(`https://cors-anywhere.herokuapp.com/http://xkcd.com/info.0.json`)
+    // .then(res => {
+    //   setComic(res.data)
+    //   setLoading(false);
+    // })
+    // .catch(err => {
+    //   console.log(err);
+    //   setError(err)
+    //   setLoading(false);
+    // })
+    fetchLatestComic();
   }, [])
-
-  const fetchComic = (number) => {
-    // setComic to null so we can get the Loading function
-    // setComic(null)
-    // we can change the above now w/setLoading
-    setLoading(true);
-    axios.get(`https://cors-anywhere.herokuapp.com/http://xkcd.com/${number}/info.0.json`)
-    .then(res => setComic(res.data))
-    .catch(err => console.log(err))
-    // after our then OR after our catchwe call 'finally' to wrap it up
-    // this does the sam thing as our setLoading logic inside useEffect
-    .finally(() => setLoading(false))
-  }
 
   console.log(comic)
 
@@ -103,7 +125,7 @@ function App() {
   }
 
   // Hopefully a user will never see this. It is just a percaution
-  if(!comic){
+  if(!comic || error){
     return(
       <div>
         Error
@@ -117,9 +139,19 @@ function App() {
       <header className="App-header">
         <h1>React XKCD</h1>
         {comic.title}
-          <button onClick={() => fetchComic(comic.num - 1)}>
+          <button onClick={() => fetchComic(1)}>First Comic</button>
+          <button   
+          // instead of the if statement on onClick, we can set a disabled attribute
+          disabled={comic.num <= 1}
+          onClick={() => {
+            if(comic.num > 1){
+              fetchComic(comic.num - 1);
+            }            
+            }}>
           Previous Comic
           </button>
+          <button onClick= {() => fetchComic(comic.num + 1)}>Next</button>
+          <button onClick= {() => fetchLatestComic()}>Latest</button>
         <img src={comic.img} />
       </header>
     </div>
