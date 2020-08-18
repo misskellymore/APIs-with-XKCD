@@ -10,6 +10,7 @@ import axios from 'axios'
 import './App.css';
 
 function App() {
+  const [comic, setComic] = useState(null);
   // we don't want to make a network req on every render. That would be bad.
   // if done w/a public api. They will banned you for some period of
   // time, potentially permenitly, if you make too many req in too
@@ -64,18 +65,39 @@ function App() {
     // so we put that in front of the actual api that we want to req
     // and it will handle resending that req and giving back the info that we want back
     // from it
-    
+
     axios.get(`https://cors-anywhere.herokuapp.com/http://xkcd.com/info.0.json`)
-    .then(res => console.log(res))
+    .then(res => setComic(res.data))
     .catch(err => console.log(err))
   }, [])
+
+  const fetchComic = (number) => {
+    axios.get(`https://cors-anywhere.herokuapp.com/http://xkcd.com/${number}/info.0.json`)
+    .then(res => setComic(res.data))
+    .catch(err => console.log(err))
+  }
+
+  console.log(comic)
+
+  // if we don't have a comic yet, then we're gonna return a div that says loading
+  if(!comic){
+    return (
+      <div>
+        Loading...
+      </div>
+    )
+  }
 
 
   return (
     <div className="App">
       <header className="App-header">
         <h1>React XKCD</h1>
-
+        {comic.title}
+          <button onClick={() => fetchComic(comic.num - 1)}>
+          Previous Comic
+          </button>
+        <img src={comic.img} />
       </header>
     </div>
   );
