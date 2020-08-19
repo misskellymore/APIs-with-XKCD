@@ -13,6 +13,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [comic, setComic] = useState(null);
+  const [latestComicNum, setLatestComicNum] = useState(null);
   const fetchComic = (number) => {
     // setComic to null so we can get the Loading function
     // setComic(null)
@@ -29,6 +30,11 @@ function App() {
     .finally(() => setLoading(false))
   }
 
+  const fetchRandomComic = () => {
+    const num = Math.floor(Math.random() * (latestComicNum - 1)) + 1;
+    fetchComic(num)
+  }
+
   // created a new useEffect
   // notes below this function came first
   // fetchLatestComic is our call back function
@@ -36,7 +42,10 @@ function App() {
     setLoading(true);
     axios.get(`https://cors-anywhere.herokuapp.com/http://xkcd.com/info.0.json`)
     .then(res => {
-      setComic(res.data)
+      setComic(res.data);
+      // comic.num will not work here. Our state variables using hook, never change 
+      // values w/in 1 render of our function
+      setLatestComicNum(res.data.num);
       setLoading(false);
     })
     .catch(err => {
@@ -150,8 +159,9 @@ function App() {
             }}>
           Previous Comic
           </button>
-          <button onClick= {() => fetchComic(comic.num + 1)}>Next</button>
-          <button onClick= {() => fetchLatestComic()}>Latest</button>
+          <button onClick= {() => fetchRandomComic()}>Random</button>
+          <button disabled={comic.num === latestComicNum} onClick= {() => fetchComic(comic.num + 1)}>Next</button>
+          <button disabled={comic.num === latestComicNum} onClick= {() => fetchLatestComic()}>Latest</button>
         <img src={comic.img} />
       </header>
     </div>
